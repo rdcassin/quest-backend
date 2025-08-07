@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type User struct {
+type Users struct {
 	ID        string    `gorm:"primaryKey" json:"id"`
 	Username  string    `gorm:"uniqueIndex" json:"username"`
 	Email     string    `gorm:"uniqueIndex" json:"email"`
@@ -15,6 +15,6 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (User) TableName() string {
+func (Users) TableName() string {
 	return "user"
 }

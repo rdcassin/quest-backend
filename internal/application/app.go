@@ -1,10 +1,11 @@
 package application
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"time"
 )
 
 type App struct {

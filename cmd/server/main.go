@@ -7,9 +7,10 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
+
 	"github.com/rdcassin/quest-backend/internal/application"
 	"github.com/rdcassin/quest-backend/internal/database"
-	"go.uber.org/zap"
 )
 
 func main() {
