@@ -1,38 +1,52 @@
 package main
 
 import (
-    "github.com/gin-gonic/gin"
-    "log"
-    "os"
-    "time"
+	"log"
+	"os"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"github.com/rdcassin/quest-backend/internal/application"
+	"github.com/rdcassin/quest-backend/internal/database"
+	"go.uber.org/zap"
 )
 
 func main() {
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080"
-    }
-    router := gin.New()
+	_ = godotenv.Load()
 
-    // Logging middleware
-    router.Use(gin.Logger())
-    router.Use(gin.Recovery())
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
-    // Health check endpoint
-    router.GET("/healthz", func(c *gin.Context) {
-        c.JSON(200, gin.H{"message": "ok", "timestamp": time.Now().Format(time.RFC3339)})
-    })
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatalf("Failed to init zap logger: %v", err)
+	}
+	defer func() { _ = logger.Sync() }()
 
-    // Versioned API (example ping route)
-    api := router.Group("/api/v1")
-    {
-        api.GET("/ping", func(c *gin.Context) {
-            c.JSON(200, gin.H{"message": "pong"})
-        })
-    }
+	db := database.Connect()
 
-    log.Printf("Quest backend listening on :%s", port)
-    if err := router.Run(":" + port); err != nil {
-        log.Fatalf("failed to start server: %v", err)
-    }
+	app := application.App{
+		DB:     db,
+		Logger: logger,
+	}
+
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"*"},
+		AllowCredentials: true,
+	}))
+
+	app.RegisterRoutes(router)
+
+	logger.Info("Quest backend listening", zap.String("port", port))
+	if err := router.Run(":" + port); err != nil {
+		logger.Fatal("failed to start server", zap.Error(err))
+	}
 }
