@@ -7,10 +7,10 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"go.uber.org/zap"
-
-	"github.com/rdcassin/quest-backend/internal/application"
+	"github.com/rdcassin/quest-backend/internal/api"
+	"github.com/rdcassin/quest-backend/internal/app"
 	"github.com/rdcassin/quest-backend/internal/database"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -28,8 +28,7 @@ func main() {
 	defer func() { _ = logger.Sync() }()
 
 	db := database.Connect()
-
-	app := application.App{
+	application := &app.App{
 		DB:     db,
 		Logger: logger,
 	}
@@ -44,7 +43,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	app.RegisterRoutes(router)
+	api.RegisterRoutes(router, application)
 
 	logger.Info("Quest backend listening", zap.String("port", port))
 	if err := router.Run(":" + port); err != nil {
