@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Need to add the other relations.
 type CreateUserInput struct {
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required"`
