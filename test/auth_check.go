@@ -22,7 +22,7 @@ func main() {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Printf("Status: %d\n", resp.StatusCode)
@@ -43,7 +43,7 @@ func main() {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ = io.ReadAll(resp.Body)
 	fmt.Printf("Status: %d\n", resp.StatusCode)
@@ -56,7 +56,7 @@ func main() {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ = io.ReadAll(resp.Body)
 	fmt.Printf("Status: %d\n", resp.StatusCode)

@@ -23,10 +23,10 @@ func ClerkAuthMiddleware() gin.HandlerFunc {
 				})
 				return
 			}
-			
+
 			// Store user ID in Gin context
 			c.Set("currentUserId", sessionClaims.Subject)
-			
+
 			// Update the request in Gin context
 			c.Request = r
 			c.Next()

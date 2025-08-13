@@ -8,7 +8,7 @@ import (
 
 func RegisterRoutes(router *gin.Engine, a *app.App) {
 	router.GET("/healthz", a.HealthzHandler)
-	
+
 	api := router.Group("/api/v1")
 	{
 		// Public endpoints
