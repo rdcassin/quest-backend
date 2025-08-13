@@ -81,11 +81,21 @@ func (a *App) UpdateUserHandler(c *gin.Context) {
 		return
 	}
 
-	if input.Username != ""  { user.Username  = input.Username }
-	if input.Email    != ""  { user.Email     = input.Email }
-	if input.ImageURL != ""  { user.ImageURL  = input.ImageURL }
-	if input.Bio      != nil { user.Bio       = input.Bio }
-	if input.ClerkID  != ""  { user.ClerkID   = input.ClerkID }
+	if input.Username != "" {
+		user.Username = input.Username
+	}
+	if input.Email != "" {
+		user.Email = input.Email
+	}
+	if input.ImageURL != "" {
+		user.ImageURL = input.ImageURL
+	}
+	if input.Bio != nil {
+		user.Bio = input.Bio
+	}
+	if input.ClerkID != "" {
+		user.ClerkID = input.ClerkID
+	}
 	user.UpdatedAt = time.Now()
 
 	if err := a.DB.Save(&user).Error; err != nil {
@@ -98,7 +108,7 @@ func (a *App) UpdateUserHandler(c *gin.Context) {
 }
 
 func (a *App) ListUsersHandler(c *gin.Context) {
-	users:= []models.User{}
+	users := []models.User{}
 	if err := a.DB.Find(&users).Error; err != nil {
 		a.Logger.Error("Failed to list users", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
