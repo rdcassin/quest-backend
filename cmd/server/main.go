@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -28,6 +29,9 @@ func main() {
 	defer func() { _ = logger.Sync() }()
 
 	db := database.Connect()
+
+	clerk.SetKey(os.Getenv("CLERK_SECRET_KEY"))
+
 	application := &app.App{
 		DB:     db,
 		Logger: logger,

@@ -126,3 +126,28 @@ func (a *App) DeleteUserHandler(c *gin.Context) {
 	}
 	c.Status(http.StatusNoContent)
 }
+
+func (a *App) GetCurrentUserHandler(c *gin.Context) {
+	currentUserID, exists := c.Get("currentUserId")
+	if !exists {
+		a.Logger.Error("No user ID in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Authentication context missing"})
+		return
+	}
+
+	clerkID := currentUserID.(string)
+
+	user := models.User{}
+	if err := a.DB.First(&user, "clerk_id = ?", clerkID).Error; err != nil {
+		a.Logger.Warn("Current user not found in database", zap.String("clerk_id", clerkID), zap.Error(err))
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":    "User profile not found",
+			"clerk_id": clerkID,
+			"message":  "Please complete your profile setup",
+		})
+		return
+	}
+
+	a.Logger.Info("Current user retrieved", zap.String("user_id", user.ID), zap.String("username", user.Username))
+	c.JSON(http.StatusOK, user)
+}
