@@ -12,5 +12,8 @@ func RegisterRoutes(router *gin.Engine, a *app.App) {
 		api.GET("/ping", a.PingHandler)
 		api.POST("/users", a.CreateUserHandler)
 		api.GET("/users/:id", a.GetUserByIDHandler)
+		api.PUT("/users/:id", a.UpdateUserHandler)
+		api.DELETE("/users/:id", a.DeleteUserHandler)
+		api.GET("/users", a.ListUsersHandler)
 	}
 }

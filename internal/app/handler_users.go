@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Need to add the other relatiions.
 type CreateUserInput struct {
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required"`
@@ -19,15 +18,23 @@ type CreateUserInput struct {
 	ClerkID  string `json:"clerk_id"`
 }
 
+type UpdateUserInput struct {
+	Username string  `json:"username,omitempty"`
+	Email    string  `json:"email,omitempty"`
+	ImageURL string  `json:"image_url,omitempty"`
+	Bio      *string `json:"bio"`
+	ClerkID  string  `json:"clerk_id,omitempty"`
+}
+
 func (a *App) CreateUserHandler(c *gin.Context) {
-	var input CreateUserInput
+	input := CreateUserInput{}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		a.Logger.Warn("Invalid input", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
 
-	user := models.User{
+	newUser := models.User{
 		ID:        uuid.NewString(),
 		Username:  input.Username,
 		Email:     input.Email,
@@ -38,22 +45,74 @@ func (a *App) CreateUserHandler(c *gin.Context) {
 		UpdatedAt: time.Now(),
 	}
 
-	if err := a.DB.Create(&user).Error; err != nil {
+	if err := a.DB.Create(&newUser).Error; err != nil {
 		a.Logger.Error("Failed to create user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	c.JSON(http.StatusCreated, newUser)
 }
 
 func (a *App) GetUserByIDHandler(c *gin.Context) {
 	id := c.Param("id")
-	var user models.User
+	user := models.User{}
 	if err := a.DB.First(&user, "id = ?", id).Error; err != nil {
 		a.Logger.Warn("User not found", zap.String("id", id), zap.Error(err))
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 	c.JSON(http.StatusOK, user)
+}
+
+func (a *App) UpdateUserHandler(c *gin.Context) {
+	id := c.Param("id")
+	input := UpdateUserInput{}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		a.Logger.Warn("Invalid input", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	user := models.User{}
+	if err := a.DB.First(&user, "id = ?", id).Error; err != nil {
+		a.Logger.Warn("User not found", zap.String("id", id), zap.Error(err))
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if input.Username != ""  { user.Username  = input.Username }
+	if input.Email    != ""  { user.Email     = input.Email }
+	if input.ImageURL != ""  { user.ImageURL  = input.ImageURL }
+	if input.Bio      != nil { user.Bio       = input.Bio }
+	if input.ClerkID  != ""  { user.ClerkID   = input.ClerkID }
+	user.UpdatedAt = time.Now()
+
+	if err := a.DB.Save(&user).Error; err != nil {
+		a.Logger.Error("Failed to update user", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+func (a *App) ListUsersHandler(c *gin.Context) {
+	users:= []models.User{}
+	if err := a.DB.Find(&users).Error; err != nil {
+		a.Logger.Error("Failed to list users", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}
+
+func (a *App) DeleteUserHandler(c *gin.Context) {
+	id := c.Param("id")
+	if err := a.DB.Delete(&models.User{}, "id = ?", id).Error; err != nil {
+		a.Logger.Error("Failed to delete user", zap.String("id", id), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+	c.Status(http.StatusNoContent)
 }
